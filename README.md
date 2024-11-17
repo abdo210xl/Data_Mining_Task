@@ -1,2 +1,2 @@
 # Data_Mining_Task
-Apriori algorithm implementation using python
+Apriori algorithm implementation for transactional data using python
