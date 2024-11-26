@@ -1,73 +1,51 @@
-import openpyxl
-import pandas as pd
+import pandas as pd, ast
 from utils import *
 
-from openpyxl import Workbook, load_workbook
+data_frame = pd.read_excel('Horizontal_Format.xlsx')
+SUPPORT_COUNT=3
 
+baskets = list()
 
-print("Free Palestine")
+for row in data_frame.itertuples():
+    baskets.append(pd.Series(str.split(row.items, ',')).drop_duplicates().tolist())
 
-excel_file='Horizontal_Format.xlsx'
+print(baskets)
 
-data_frame = pd.read_excel(excel_file,sheet_name="Sheet1")
-work_book = load_workbook('Horizontal_Format.xlsx')
+level1_candidates = list()
+for basket in baskets:
+    for item in basket:
+        level1_candidates.append([item])
+level1_candidates = sorted(pd.Series(level1_candidates).drop_duplicates().tolist())
 
-work_sheet = work_book.active
+print(level1_candidates)
 
-# data_frame_dict=data_frame.to_dict()
+frequent_itemsets = list()
+level1_frequent = dict()
+for candidate in level1_candidates:
+    level1_frequent[str(candidate)] = 0
+ 
+for basket in baskets:
+    for candidate in level1_candidates:
+        if candidate[0] in basket:
+            level1_frequent[str(candidate)]+=1
 
-#min_support = int(input("Enter minimum support in %: "))
-#min_confidence = int(input("Enter minimum confidence in %: "))
+level1_frequent = {key: value for key, value in level1_frequent.items() if value >= SUPPORT_COUNT}
 
-#support_count=min_support/100
+frequent_itemsets.append(level1_frequent)
 
-support_count=3
+previous_level_based_candidates = [ast.literal_eval(item) for item in list(level1_frequent.keys())]
 
-frequent_items={}
-items_count_per_transaction={}
-frequent_items_per_level={}
-k_level = 1 
+print(previous_level_based_candidates)
 
-x=1
-while x:
-
-    
-    index=0
-    if k_level == 1:
-        for items in data_frame['items']:
-            print(index)
-            print(items)
-            # item_list=remove_duplicates(items)
-            # data_frame.at[items,'items']=item_list
-            is_visited={}
-            items_count_per_transaction[index]={}
-            for item in items:
-                if item in items_count_per_transaction.keys() and not is_visited[item]:
-                    items_count_per_transaction[index][item]+=1
-                    is_visited[item]=1
-                elif item != ",":
-                    items_count_per_transaction[index][item]=1
-                    is_visited[item]=1
-            index+=1
-
-
-    print(items_count_per_transaction)
-
-    candidate_items_per_level=generate_candidate_itemsets(items_count_per_transaction,k_level,frequent_items_per_level)
-
-    for item,count in candidate_items_per_level.items():
-        if count >= support_count:
-            frequent_items_per_level[item]=count
-
-    if not bool(frequent_items_per_level):
+while(True):
+    current_level_candidates = generate_candidates(previous_level_based_candidates)
+    print(current_level_candidates)
+    current_level_frequent = filter_frequent_itemsets(current_level_candidates, baskets, SUPPORT_COUNT)
+    print(current_level_frequent)
+    frequent_itemsets.append(current_level_frequent)
+    previous_level_based_candidates = [ast.literal_eval(item) for item in list(current_level_frequent.keys())]
+    print(previous_level_based_candidates)
+    if len(previous_level_based_candidates) <= 1:
+        print("finished apreori")
+        print(frequent_itemsets)
         break
-
-    frequent_items.update(frequent_items_per_level)
-
-    k_level+=1
-    x-=1
-
-
-print(frequent_items)
-
-
