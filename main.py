@@ -1,4 +1,4 @@
-import pandas as pd, ast
+import pandas as pd, matplotlib.pyplot as plt, ast
 from utils import *
 
 data_frame = pd.read_excel('Horizontal_Format.xlsx')
@@ -49,3 +49,22 @@ while(True):
         print("finished apreori")
         print(frequent_itemsets)
         break
+
+visual_frequent_itemsets = dict()
+for level in frequent_itemsets:
+    visual_frequent_itemsets.update(level)
+print(visual_frequent_itemsets)
+
+x_labels = list(visual_frequent_itemsets.keys())
+y_values = list(visual_frequent_itemsets.values())
+
+plt.figure(figsize=(12, 5))
+
+plt.bar(x_labels, y_values, color='skyblue')
+
+plt.xlabel("Frequent Itemsets")
+plt.ylabel("Support")
+plt.title("Frequent Itesets Bar Chart")
+
+
+plt.show()
