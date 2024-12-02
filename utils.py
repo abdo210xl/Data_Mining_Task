@@ -33,76 +33,38 @@ def filter_frequent_itemsets(candidates, baskets, support_count):
             if is_in_basket:
                 itemsets[str(candidate)] += 1
             is_in_basket = True
-    # print(itemsets)
     frequent_itemsets =  {key: value for key, value in itemsets.items() if value >= support_count}
     return frequent_itemsets
 
-def generate_strong_rules(frequent_itemsets, baskets, min_confidence):
-    """
-    Generate strong association rules from frequent itemsets.
 
-    Args:
-    - frequent_itemsets: List of dictionaries with frequent itemsets and their support counts.
-    - baskets: List of transactions.
-    - min_confidence: Minimum confidence threshold.
+def generate_all_rules(frequent_itemsets, baskets_amount):
+    all_rules = []    
+    rules_generation_itemsets =  {k: v for k, v in frequent_itemsets.items() if len(ast.literal_eval(k)) > 1}
 
-    Returns:
-    - rules: List of tuples (X, Y, support, confidence, lift, strong).
-    """
-    rules = []    
-    # Helper function to calculate support
-    def calculate_support(itemset):
-        itemset = set(itemset)
-        count = sum(1 for basket in baskets if itemset.issubset(basket))
-        
-        return count
+    for itemset, support_count in rules_generation_itemsets.items():
+        itemset = ast.literal_eval(itemset) 
+        itemset_support = support_count 
+        for i in range(1, len(itemset)):
+            subsets = combinations(itemset, i)
+            for subset in subsets:
+                X = list(subset)
+                Y = [item for item in itemset if item not in X]
 
-    # Loop through all levels of frequent itemsets
-    for level in frequent_itemsets[1:]:  # Skip level 0 (single items don't generate rules)
-        for itemset, support_count in level.items():
-            itemset = ast.literal_eval(itemset)  # Convert string representation to list
-            itemset_support = support_count   # Support of the full itemset
-            
-            # Generate all possible subsets (X) and Y = itemset - X
-            for i in range(1, len(itemset)):
-                subsets = combinations(itemset, i)
-                for subset in subsets:
-                    X = set(subset)
-                    Y = set(itemset) - X
+                X_support = frequent_itemsets[str(X)]
 
-                    # Calculate confidence
-                    X_support = calculate_support(X)
+                confidence = itemset_support / X_support
+                Y_support = frequent_itemsets[str(Y)]
+                    
+                lift = (itemset_support/baskets_amount) / ((X_support/baskets_amount)*(Y_support/baskets_amount))
 
-                    if X_support > 0: 
-                        confidence = itemset_support / X_support
-                        Y_support = calculate_support(Y)
-                        # print(X)
-                        # print(X_support) 
-                        # print("\n")
-                        # print(Y)
-                        # print(Y_support)  
-                          
-                        # Calculate lift
-                        lift = confidence / Y_support if Y_support > 0 else 0
-                        
-                        # Check if the rule is strong based on min_confidence
-                        is_strong = confidence >= min_confidence
-                        
-                        if is_strong :
-                            # Store the rule with all relevant details
-                            rules.append((list(X), list(Y), itemset_support, confidence, lift))
+                all_rules.append((list(X), list(Y), itemset_support, confidence, lift))
     
-    return rules
+    return all_rules
 
 
 def visualize_frequent_itemsets(frequent_itemsets):
-    visual_frequent_itemsets = dict()
-    for level in frequent_itemsets:
-        visual_frequent_itemsets.update(level)
-    #print(visual_frequent_itemsets)
-
-    x_labels = list(visual_frequent_itemsets.keys())
-    y_values = list(visual_frequent_itemsets.values())
+    x_labels = list(frequent_itemsets.keys())
+    y_values = list(frequent_itemsets.values())
 
     plt.figure(figsize=(12, 5))
 
@@ -113,4 +75,3 @@ def visualize_frequent_itemsets(frequent_itemsets):
     plt.title("Frequent Itesets Bar Chart")
 
     plt.show()
-
