@@ -4,6 +4,10 @@ from itertools import combinations
 
 ##---------------Step 1: Read excecl file----------------##
 
+# Test file 
+# data_frame = pd.read_excel('Book1.xlsx')
+
+# Main file
 data_frame = pd.read_excel('Horizontal_Format.xlsx')
 
 
